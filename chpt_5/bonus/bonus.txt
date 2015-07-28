@@ -1,0 +1,39 @@
+› Write down some more examples of strings the Doge language contains.
+  Stupid.
+
+› Why are there back slashes \ in front of the quote marks " in the grammar?
+  Escape character
+
+› Why are there back slashes \ at the end of the line in the grammar?
+  Same as above?
+
+› Describe textually a grammar for decimal numbers such as 0.01 or 52.221.
+  "                                           \
+    number    : \"%d\";                       \
+    spot      : \".\";                        \
+    decimal   : <number><spot><number>;       \
+  "
+› Describe textually a grammar for web URLs such as http://www.buildyourownlisp.com.
+  "                                                                 \
+    protocol    : \"http"\ | "\https\";                             \
+    sub_domain  : \"www\";                                          \
+    domain_name : \"%s"\;                                           \
+    tld         : \"com\" | \"org\" | \"net\" | \"gov\" | \"info\"; \
+    url         : <protocol>://<sub_domain>.<domain_name>.<tld>;    \
+  "
+
+› Describe textually a grammar for simple English sentences such as "the cat sat on the mat".
+  "                                                         \
+    noun        : \"cat\" | \"mat\";                        \
+    verb        : \"sat\";                                  \
+    preposition : \"on\";                                   \
+    article     : \"the\";                                  \
+    subject     : <article> <noun> | <noun>;                \
+    sentence    : <subject> <verb> |                        \
+                  <subject> <verb> <preposition> <subject>; \
+  "
+
+› Describe more formally the above grammars. Use |, *, or any symbols of your own invention.
+  Kinda did that already.
+
+› If you are familiar with JSON, textually describe a grammar for it.

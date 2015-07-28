@@ -1,0 +1,85 @@
+RE-WRITE STATEMENTS
+In C, the body of an if statement contains a list of new statements.
+Each of these new statements, could themselves be another if statement.
+These repeated structures and replacements are reflected in all parts of the language.
+
+These are sometimes called re-write rules because they tell you how one thing can be re-written as something else.
+› if (x > 5) { return x; }
+› if (x > 5) { if (x > 10) { return x; } }
+
+The name given to a set of re-write rules is a GRAMMAR.
+
+For reading in the user input we need to write a grammar which describes it.
+Then we can use it along with our user input, to decide if the input is valid.
+
+GRAMMARS
+
+MPC - https://github.com/orangeduck/mpc.git
+Author has written a Parser Combinator library to assist with specifying grammar.
+
+Using the type MPC_PARSER_T* we can declare a parser for "Adjective" and "Noun".
+Function MPC_OR is used to create a parser when several options should be used.
+Function MPC_AND is used to create a parser when one option is required to be followed by another.
+Function MPC_SYM wraps the initial strings.
+Function MPC_MANY specifies that zero or more of some parser is required.
+
+A doge language..
+› An Adjective is either "wow", "many", "so" or "such".
+  /* Build a parser 'Adjective' to recognize descriptions */
+  mpc_parser_t* Adjective = mpc_or(4,
+    mpc_sym("wow"), mpc_sym("many"),
+    mpc_sym("so"),  mpc_sym("such")
+  );
+
+› A Noun is either "lisp", "language", "c", "book" or "build".
+  /* Build a parser 'Noun' to recognize things */
+  mpc_parser_t* Noun = mpc_or(5,
+    mpc_sym("lisp"), mpc_sym("language"),
+    mpc_sym("book"),mpc_sym("build"),
+    mpc_sym("c")
+  );
+
+› A Phrase is an Adjective followed by a Noun.
+  mpc_parser_t* Phrase = mpc_and(2, mpcf_strfold, Adjective, Noun, free);
+
+› A Doge is zero or more Phrases.
+  mpc_parser_t* Doge = mpc_many(mpcf_strfold, Phrase);
+
+NATURAL GRAMMARS WITH MPC
+mpc lets you write grammars more naturally without having to worry about
+joining or discarding inputs with functions like mpcf_strfold or free.
+All that is handled automatically
+Example:
+
+  mpc_parser_t* Adjective = mpc_new("adjective");
+  mpc_parser_t* Noun      = mpc_new("noun");
+  mpc_parser_t* Phrase    = mpc_new("phrase");
+  mpc_parser_t* Doge      = mpc_new("doge");
+
+  mpca_lang(MPCA_LANG_DEFAULT,
+    "                                           \
+      adjective : \"wow\" | \"many\"            \
+                |  \"so\" | \"such\";           \
+      noun      : \"lisp\" | \"language\"       \
+                | \"book\" | \"build\" | \"c\"; \
+      phrase    : <adjective> <noun>;           \
+      doge      : <phrase>*;                    \
+    ",
+    Adjective, Noun, Phrase, Doge);
+
+  /* Do some parsing here... */
+
+  mpc_cleanup(4, Adjective, Noun, Phrase, Doge);
+
+MPC_NEW creates and names a rule.
+MPC_LANG defines those rules.
+MPC_LANG takes an options flag as its first paramater (in this case the default)
+and then takes a long string which is the grammar specification or a number of re-write rules.
+Symbols used:
+"ab"	    The string ab is required.
+'a'	      The character a is required.
+'a' 'b'	  First 'a' is required, then 'b' is required.
+'a' | 'b'	Either 'a' is required, or 'b' is required.
+'a'*	    Zero or more 'a' are required.
+'a'+	    One or more 'a' are required.
+<abba>	  The rule called abba is required.

@@ -1,0 +1,21 @@
+TREES
+
+The internal structure that we saw printed by the program is an abstract syntax tree.
+Example:
+  "+ 1 1" yields below;
+  regex
+  operator|char:1:1 '+'
+  expr|number|regex:1:3 '1'
+  expr|number|regex:1:5 '1'
+  regex
+
+We can have a look at the definition of mpc_ast_t,
+which is the data structure we got from the parse.
+
+  typedef struct mpc_ast_t {
+    char* tag;
+    char* contents;
+    mpc_state_t state;
+    int children_num;
+    struct mpc_ast_t** children;
+  } mpc_ast_t;

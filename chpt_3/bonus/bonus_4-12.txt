@@ -1,0 +1,44 @@
+› What built in types are there other than the ones listed?
+  Enumerated types, Derived types (Pointer, Array, Structure, Union, and Function types)
+
+› What other conditional operators are there other than greater than >, and less than <?
+  <=, >=, ==, !=
+
+› What other mathematical operators are there other than add +, and subtract -?
+  * (multiplication), / (division), % (modulus), -- (decrement), ++ (increment)
+
+› What is the += operator, and how does it work?
+  increment preceded variable by value of proceeding variable
+
+› What is the do loop, and how does it work?
+  execute a statement, then check on a condition before executing again,
+  ensuring the statement is executed at least once.
+  syntax:
+  do {
+    statement(s);
+  } while( condition );
+
+› What is the switch statement and how does it work?
+  syntax:
+  switch(expression){
+      case constant-expression  :
+         statement(s);
+         break; /* optional */
+      case constant-expression  :
+         statement(s);
+         break; /* optional */
+      /* you can have any number of case statements */
+      default : /* Optional */
+         statement(s);
+  }
+
+› What is the break keyword and what does it do?
+  Passes control out of the compound statement -- ie, while, do, for, switch.
+  syntax:
+  break;
+
+› What is the continue keyword and what does it do?
+  Passes control to the begining of the loop.
+
+› What does the typedef keyword do exactly?
+  Creates a new type.

@@ -1,0 +1,36 @@
+POLISH NOTATION
+Operator comes before the operands.
+For example:
+  (10 * 2) / (4 + 2)	is	/ (* 10 2) (+ 4 2)
+
+Textually:
+  A program is an operator followed by one or more expressions,"
+  where "an expression is either a number, or, in parenthesis, an operator followed by one or more expressions"
+
+More formally:
+  Program:    The start of an input, an Operator, one or more Expression, and the end of an input
+  Expression: Either a Number or '(', an Operator, one or more Expression, and an ')'
+  Operator:   '+', '-', '*', or '/'
+  Number:     An optional '-', and one or more characters between 0 and 9.
+
+REGULAR EXPRESSIONS
+Number and Program will require regex to parse correctly.
+
+.	        Any character is required.
+a	        The character a is required.
+[abcdef]	Any character in the set abcdef is required.
+[a-f]	    Any character in the range a to f is required.
+a?	      The character a is optional.
+a*	      Zero or more of the character a are required.
+a+	      One or more of the character a are required.
+^	        The start of input is required.
+$	        The end of input is required.
+
+So our Number rule would be: /-?[0-9]+/
+
+INCLUDING FILES IN C
+There are actually two ways to include files in C.
+One is using angular brackets <> as we've seen so far, and the other is with quotation marks "".
+
+Using angular brackets searches the system locations for headers first, 
+while quotation marks searches the current directory first.

@@ -1,0 +1,43 @@
+› What does the \n mean in those strings?
+  newline
+
+› What other patterns can be used with printf?
+  http://www.codingunit.com/printf-format-specifiers-format-conversions-and-formatted-output
+  Format Specifiers:
+  %i or %d	int
+  %c	      char
+  %f	      float (see also the note below)
+  %s	      string
+
+› What happens when you pass printf a variable that does not match the pattern?
+  Warning Message:
+  warning: more '%' conversions than data arguments [-Wformat]
+
+› What does the preprocessor command #ifndef do?
+  The c precompiler modifies a source code file before handing it over to the compiler.
+
+  By using the #ifndef (if not defined) directive, you can include a block of text only if a particular expression is undefined;
+  then, within the header file, you can define the expression.
+
+  This ensures that the code in the #ifndef is included only the first time the file is loaded.
+  Syntax:
+  #ifndef <token>
+  /* code */
+  #else
+  /* code to include if the token is defined */
+  #endif
+
+  Examples:
+  #ifndef _INCL_GUARD
+  #define _INCL_GUARD
+  #endif
+
+  #ifndef NULL
+  #define NULL (void *)0
+  #endif // #ifndef NULL
+
+› What does the preprocessor command #define do?
+  Directive #define, allows is to write macros to be referenced by our precompiler
+
+› If _WIN32 is defined on windows, what is defined for Linux or Mac?
+  __linux, __APPLE__

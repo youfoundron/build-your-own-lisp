@@ -1,0 +1,37 @@
+REPL stands for read-evaluate-print loop. duh.
+
+The line static char input[2048]; declares a global array of 2048 characters.
+The static keyword make this variable local to this file, and the [2048] section is what declares the size.
+
+To output our prompt we use the function FPUTS.
+This is a slight variation on puts which does not append a newline character.
+
+We use the FPUTS function for getting user input from the command line.
+Both of these functions require some file to write to, or read from.
+
+For this we supply the special variables STDIN and STDOUT.
+
+These are declared in <stdio.h> and are special file variables representing input to, and output from, the command line.
+
+EDITING INPUT
+
+On mac and linux, arrow keys won't move the cursor around the input by default.
+We'll use functions from a library called EDITLINE in place of FGETS & FPUTS
+These functions are READLINE and ADD_HISTORY.
+READLINE is used to read input from some prompt, while allowing for editing of that input.
+ADD_HISTORY lets us record the history of inputs so that they can be retrieved with the up and down arrows.
+
+THE C PREPROCESSOR
+
+The preprocessor helps the issue of portability;
+being able to run the same source code on other operating systems.
+
+The preprocessor runs before the compiler.
+Any line that starts with a hash, "#", is a preprocessor command.
+
+Another use of the preprocessor is to detect which OS the code is being compiled on,
+and to use this to emit different code.
+
+To declare what code the compiler should emit
+we can wrap it in #ifdef, #else, and #endif preprocessor statements.
+http://stackoverflow.com/questions/5919996/how-to-detect-reliably-mac-os-x-ios-linux-windows-in-c-preprocessor

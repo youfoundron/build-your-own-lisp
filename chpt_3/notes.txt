@@ -1,0 +1,100 @@
+A program in C consists of only function definitions and structure definitions.
+
+The execution of a C program always starts in the function called main.
+From here it calls more and more functions, to perform all the actions it requires.
+
+We terminate all statements in C with a semicolon ;
+To create a new int called count we could write the following...
+  int count;
+OR declare and set the value
+  int count = 10;
+
+--- BUILT-IN TYPES ---
+void	   Empty Type
+char	   Single Character/Byte	              char last_initial = 'H';
+int	     Integer	                            int age = 23;
+long	   Integer that can hold larger values	long age_of_universe = 13798000000;
+float	   Decimal Number	                      float liters_per_pint = 0.568f;
+double	 Decimal Number with more precision	  double speed_of_swallow = 0.01072896;
+
+--- SIGNED vs UN-SIGNED ---
+char	          1 byte	      -128 to 127 or 0 to 255
+unsigned char	  1 byte	      0 to 255
+signed char	    1 byte	      -128 to 127
+int	            2 or 4 bytes	-32,768 to 32,767 or -2,147,483,648 to 2,147,483,647
+unsigned int	  2 or 4 bytes	0 to 65,535 or 0 to 4,294,967,295
+short	          2 bytes	      -32,768 to 32,767
+unsigned short	2 bytes	      0 to 65,535
+long	          4 bytes	      -2,147,483,648 to 2,147,483,647
+unsigned long	  4 bytes	      0 to 4,294,967,295
+
+--- FUNCTIONS ---
+Declaration:
+
+  int add_together(int x, int y) {
+    int result = x + y;
+    return result;
+  }
+
+Calling:
+
+  int added = add_together(10, 18);
+
+--- STRUCTURES ---
+Structures are used to declare new types.
+Structures are several variables bundled together into a single package.
+
+For example to represent a point in 2D space we could create a structure called point
+that packs together two float (decimal) values called x and y.
+To declare structures we can use the struct keyword in conjunction with the typedef keyword.
+
+  typedef struct {
+    float x;
+    float y;
+  } point;
+
+We should place this definition above any functions that wish to use it.
+An example use:
+
+  point p;
+  p.x = 0.1;
+  p.y = 10.0;
+
+  float length = sqrt(p.x * p.x + p.y * p.y);
+
+--- POINTERS ---
+A pointer is a variation on a normal type where the type name is suffixed with an asterisk.
+We already saw a pointer type char** argv.
+This is a pointer to pointers to characters, and is used as input to main function.
+
+Pointers are used for a whole number of different things such as for strings or lists.
+
+--- STRINGS ---
+In C strings are represented by the pointer type char* -- if you see char*, read it as string.
+
+Under the hood they are stored as a list of characters,
+where the final character is a special character called the NULL TERMINATOR.
+
+Strings can be declared literally by putting text between quotation marks, ie "Hello world!"
+
+--- CONDITIONALS ---
+Logical operators are && and ||
+Example:
+  if (x > 10 && x < 100) {
+    puts("x is greater than 10 and less than 100!");
+  } else {
+    puts("x is less than 11 or greater than 99!");
+  }
+
+--- LOOPS ---
+While:
+  int i = 10;
+  while (i > 0) {
+    puts("Loop Iteration");
+    i = i - 1;
+  }
+
+For:
+  for (int i = 0; i < 10; i++) {
+    puts("Loop Iteration");
+  }

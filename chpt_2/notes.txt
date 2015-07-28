@@ -1,0 +1,8 @@
+To compile: "cc -std=c99 -Wall <input_filename.c> -o <output_filename>"
+
+Everything runs within a main method:
+  int main(int argc, char** argv) {
+    return 0;
+  }
+
+When a C program returns 0 this indicates there have been no errors running the program.
