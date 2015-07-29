@@ -1,0 +1,11 @@
+› How would you use strstr to see if a node was tagged as an expr?
+  mpc_ast_t* t = <some node>;
+  if (strstr(t.tag, "expr")) {
+    // do some thing if node is tagged as an expr
+  }
+
+› How would you use strcmp to see if a node had the contents '(' or ')'?
+  mpc_ast_t* t = <some node>;
+  if (strcmp(t.contents, '(') == 0) || strcmp(t.contents, ')') == 0)) {
+    // do something if node has contents '(' or ')'
+  }

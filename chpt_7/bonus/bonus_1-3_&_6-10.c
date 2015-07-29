@@ -66,6 +66,13 @@ long eval_op(long x, char* op, long y) {
   if (strcmp(op, "*") == 0) { return x * y; }
   if (strcmp(op, "/") == 0) { return x / y; }
   if (strcmp(op, "%") == 0) { return x % y; }
+  if (strcmp(op, "^") == 0) {
+    long result = 1;
+    for (int i = 0; i < y; i++) { result = result * x; }
+    return result;
+  }
+  if (strcmp(op, "min") == 0) { return (x <= y) ? x : y; }
+  if (strcmp(op, "max") == 0) { return (x >= y) ? x : y; }
   return 0;
 }
 
@@ -81,6 +88,9 @@ long eval(mpc_ast_t* t) {
 
   /* We store the third child in 'x' */
   long x = eval(t->children[2]);
+
+  /* If '-' operator receives one argument, negate it */
+  if (strcmp(op, "-") == 0 && t->children_num < 5) { return 0 - x; }
 
   /* Iterate the remaining children and combining. */
   int i = 3;
@@ -106,7 +116,7 @@ int count_leaves(mpc_ast_t* t) {
 
 /* count the branches of a tree */
 //  seems like the same thing as leaves?
-int count_branches(mpc_ast_t* t) { return count_leaves(t) }
+int count_branches(mpc_ast_t* t) { return count_leaves(t); }
 
 /* find the length of the longest branch */
 // looking into this one later
@@ -122,7 +132,8 @@ int main(int argc, char** argv) {
   mpca_lang(MPCA_LANG_DEFAULT,
     "                                                    \
       number   : /-?[0-9]+(\\.[0-9]+)?/;                 \
-      operator : '+' | '-' | '*' | '/' | '%' ;           \
+      operator : '+' | '-' | '*' | '/' | '%' | '^' |     \
+                \"min\" | \"max\" ;                      \
       expr     : <number> | '(' <operator> <expr>+ ')';  \
       nilisp   : /^/ <operator> <expr>+ /$/ |            \
                  /^\\(/ <operator> <expr>+ /\\)$/;       \
@@ -146,7 +157,6 @@ int main(int argc, char** argv) {
       long num_leaves = count_leaves(r.output);
       printf("%li\n", result);
       printf("num_leaves: %li\n", num_leaves);
-      mpc_ast_print(r.output);
       mpc_ast_delete(r.output);
     } else {
       /* Otherwise Print the Error */
