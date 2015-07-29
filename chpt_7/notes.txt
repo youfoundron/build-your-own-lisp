@@ -1,8 +1,9 @@
-TREES
+--- TREES ---
 
 The internal structure that we saw printed by the program is an abstract syntax tree.
 Example:
   "+ 1 1" yields below;
+
   regex
   operator|char:1:1 '+'
   expr|number|regex:1:3 '1'
@@ -19,3 +20,102 @@ which is the data structure we got from the parse.
     int children_num;
     struct mpc_ast_t** children;
   } mpc_ast_t;
+
+Let's look at the fields.
+TAG - lets us see what parse rules have been used to create the node
+CONTENTS - actual contents of the node, ex '*', '(', or '5'
+  for branches this is empty, but for leaves it is the operator or number we will use
+STATE - information about what state the parser was in when it found this node such as line or column number
+CHILDREN_NUM - how many children the node has
+CHILDREN - array of children or the list of child nodes (mpc_ast_t** is a double pointer type)
+  Access a child from the children field using array notation.
+
+Because the type mpc_ast_t* is a pointer to a struct, the syntax to access fields is '->' rathern than a dot '.'
+
+  /* Load AST from output */
+  mpc_ast_t* a = r.output;
+  printf("Tag: %s\n", a->tag);
+  printf("Contents: %s\n", a->contents);
+  printf("Number of children: %i\n", a->children_num);
+
+  /* Get First Child */
+  mpc_ast_t* c0 = a->children[0];
+  printf("First Child Tag: %s\n", c0->tag);
+  printf("First Child Contents: %s\n", c0->contents);
+  printf("First Child Number of children: %i\n",
+    c0->children_num);
+
+--- RECURSION ---
+
+The tree structure refers to itself
+You know this already but a recursive function is one that calls itself as some part of its calculation
+
+How to find the n number of nodes in all children.
+
+  int number_of_nodes(mpc_ast_t* t) {
+    if (t->children_num == 0) {  return 1; }
+    if (t->chilren_num >= 1) {
+      int total = 1;
+      for (int i = 0; i < t->children_num; i++) {
+        total += number_of_nodes(t->children[i]);
+      }
+      return total;
+    }
+  }
+
+--- EVALUATION ---
+
+To evaluate the parse tree we will use a recursive function.
+For a base case we can see that if node is tagged with NUMBER it is always a number, has no children, and we can just convert it to an integer.
+For a recursive case a node is tagged with EXPR and is NOT a NUMBER, we need to look at its second child (the first child is always '(') and see which operator it is
+
+To detect the tag or get a number from a node, we will need to make use of the tag and content fields.
+
+Some string functions:
+  atoi   : converts a char* to a long
+  strcmp : takes as input two char* and if they are equal, returns 0
+  strstr : takes as input two char* and returns a pointer to the location of the second in the first,
+           or 0 if the second is NOT a sub-str of the first.
+
+strcmp will check which operator to use, and strstr will check if a tag contains some substring.
+Our evaluation could look like this:
+  long eval(mpc_ast_t* t) {
+    /* If tagged as number return it directly. */
+    if (strstr(t->tag, "number")) {
+      return atoi(t->contents);
+    }
+
+    /* The operator is always second child. */
+    char* op = t->children[1]->contents;
+
+    /* We store the third child in 'x' */
+    long x = eval(t->children[2]);
+
+    /* Iterate the remaining children and combining. */
+    int i = 3;
+    while (strstr(t->children[i]->tag, "expr"))  {
+      x = eval_op(x, op, eval(t->children[i]));
+      i++;
+    }
+    return x;
+  }
+
+We can define the eval_op function as follows:
+  /* User operator string to see which operation to perform */
+  long eval_op(long x, char* op, long y) {
+    if (strcmp(op "+") == 0) { return x + y }
+    if (strcmp(op "-") == 0) { return x - y }
+    if (strcmp(op "*") == 0) { return x * y }
+    if (strcmp(op "/") == 0) { return x / y }
+  }
+
+--- PRINTING ---
+
+To print the result of the evaluation, we need to pass the tree to the eval function.
+Print the result we get using printf and the specifier %li which is used for long type.
+
+We also need to remember to delete the output tree after we are done evaluating it.
+
+  long result = eval(r.output);
+  printf("%li\n", result);
+  mpc_ast_delete(r.output);
