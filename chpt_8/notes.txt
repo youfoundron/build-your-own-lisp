@@ -1,0 +1,14 @@
+--- CRASHES ---
+Currently the program crashes when a user attempts to divide by 0, we should handle this with an error.
+
+To debug in c we should use lldb (gdb on non mac) and valgrind.
+
+--- LLDB BASICS ---
+
+https://github.com/rongierlach/lldb-basics
+
+--- VALGRIND BASICS ---
+
+http://valgrind.org/docs/manual/quick-start.html#quick-start.intro
+
+valgrind --leak-check=yes nilisp
