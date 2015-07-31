@@ -3,12 +3,134 @@ Currently the program crashes when a user attempts to divide by 0, we should han
 
 To debug in c we should use lldb (gdb on non mac) and valgrind.
 
---- LLDB BASICS ---
-
+LLDB BASICS
 https://github.com/rongierlach/lldb-basics
 
---- VALGRIND BASICS ---
-
+VALGRIND BASICS
 http://valgrind.org/docs/manual/quick-start.html#quick-start.intro
-
+http://cs.ecs.baylor.edu/~donahoo/tools/valgrind/
 valgrind --leak-check=yes nilisp
+
+COMPILE TIME OPTIONS
+https://www.freebsd.org/doc/en/books/developers-handbook/tools-compiling.html
+
+
+--- LISP VALUE ---
+We will make errors as a result of evaluating an expression.
+That is to say that an expression will evaluate to either a number or an error.
+
+Let's make a data structure that can act as one thing or anything.
+
+  typedef struct {
+    int type;
+    long num;
+    int err;
+  } val;
+
+--- ENUMERATIONS ---
+Create enumerations with the enum keyword
+enum is declaration of variables which under the hood are automatically assigned integer constant values.
+
+  /* Create Enumeration of Possible val types */
+  enum { VAL_NUM, VAL_ERR };
+  /*  Create Enumeratino of Possible Error Types */
+  /* divide by zero, unknown op, number too large to be represented by a long
+  enum { ERR_DIV_ZERO, ERR_INVALID_OP, ERR_INVALID_NUM };
+
+--- VALUE FUNCTIONS ---
+Create functions to construct a val type of error or number
+
+  /* Create a new number type val */
+  val val_num(long x) {
+    val v;
+    v.type = VAL_NUM;
+    v.num = x;
+    return v;
+  }
+
+  /* Create a new error type val */
+  val val_err(int x) {
+    val v;
+    v.type = VAL_ERR;
+    v.err = x;
+    return v;
+  }
+
+
+These functions will create a val type called v and assign fields before returning it
+
+Because val function can be one of two things, we can no longer use printf to output it.
+We will have to write our own method:
+
+  /* Print a "val" */
+  void val_print(val v) {
+    switch (v.type) (
+      /* In the case the type is a number print it */
+      /* Then 'break' out of the switch */
+      case VAL_NUM: printf("%li", v.num); break;
+
+      /* In the case the type is an error */
+      /* Check what type of error it is and print it */
+      case VAL_ERR:
+        if (v.err == ERR_DIV_ZERO) {
+          printf("Error: Division By Zero");
+        }
+        if (v.err == ERR_INVALID_OP) {
+          printf("Error: Invalid Operator");
+        }
+        if (v.err == ERR_INVALID_NUM) {
+          printf("Error: Invalid Number");
+        }
+      break;
+    )
+  }
+
+  /* Print a "val" followed by a newline */
+  void val_println(val v) { val_print(v); putchar('\n'); }
+
+--- EVALUATING ERRORS ---
+We need to change the evaluation functions to use our val type instead of long.
+
+  val eval_op(val x, char* op, val y) {
+    /* if either value is an error return it */
+    if (x.type == VAL_ERR) { return x; }
+    if (y.type == VAL_ERR) { return y; }
+
+    /* Otherwise operate on the number values */
+    if (strcmp(op, "+") == 0) { return val_num(x.num + y.num); }
+    if (strcmp(op, "-") == 0) { return val_num(x.num - y.num); }
+    if (strcmp(op, "*") == 0) { return val_num(x.num * y.num); }
+    if (strcmp(op, "/") == 0) {
+      /* If second operand is zero return error */
+      return y.num == 0 ? val_err(ERR_DIV_ZERO) : val_num(x.num / y.num);
+    }
+    return val_err(ERR_INVALID_OP);
+  }
+
+The eval function needs to convert to val instead of long now.
+
+  val eval(mpc_ast_t* t) {
+    if (strstr(t->tag, "number")) {
+      /* Check if there is some error number in conversion
+      errno = 0;
+      long x = strtol(t->contents, NULL, 10);
+      return errno != ERANGE ? val_num(x) : val_err(ERR_BAD_NUM)
+    }
+
+    char* op = t->children[1]->contents;
+    val x = eval(t->children[2]);
+
+    int i = 3;
+    while (strstr(t->chidlren[i]->tag, "expr")) {
+      x = eval_op(x, op, eval(t->children[i]));
+      i++;
+    }
+
+    return x;
+  }
+
+Finally update the print function to call our val_println function
+
+  val_result = eval(r.output);
+  val_println(result);
+  mpc_ast_delete(r.output);
