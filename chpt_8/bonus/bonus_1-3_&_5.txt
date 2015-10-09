@@ -30,7 +30,7 @@
   This means that all fields in a union share the same space,
   which can be used for any listed field but not more than one of them.
 
-  In order to know which union fi9eld is actually stored, unions are often nested inside of structs,
+  In order to know which union field is actually stored, unions are often nested inside of structs,
   with an enumerated type indicating what is actually stored there.
   For Example:
 

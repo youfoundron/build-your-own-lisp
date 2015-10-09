@@ -143,14 +143,14 @@ val eval(mpc_ast_t* t) {
     /* see if a float is given by checking if contents have a decimal point */
   if (strchr(t->contents, '.') != NULL) {
       float x_float = strtof(t->contents, NULL);
-      printf("%f - float\n", x_float);
+      // printf("%f - float\n", x_float);
+      return errno != ERANGE ? val_num(x_float) : val_err(ERR_INVALID_NUM);
     /* otherwise treat it as a long */
     } else {
       long x_long = strtol(t->contents, NULL, 10);
-      printf("%li - long\n", x_long);
+      // printf("%li - long\n", x_long);
+      return errno != ERANGE ? val_num(x_long) : val_err(ERR_INVALID_NUM);
     }
-    long x = strtol(t->contents, NULL, 10);
-    return errno != ERANGE ? val_num(x) : val_err(ERR_INVALID_NUM);
   }
 
   /* The operator is always second child. */
