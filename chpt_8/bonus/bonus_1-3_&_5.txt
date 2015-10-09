@@ -1,0 +1,50 @@
+› Run the previous chapter's code through lldb and crash it. See what happens.
+  (lldb) file ./prev_chpt.c
+  (lldb) run
+  lispy> / 1 0
+  -----------------------------
+  Process 19931 stopped
+  * thread #1: tid = 0x1116b1, 0x00000001000007ca prev_chpt`eval_op + 186, queue = 'com.apple.main-thread', stop reason = EXC_ARITHMETIC (code=EXC_I386_DIV, subcode=0x0)
+      frame #0: 0x00000001000007ca prev_chpt`eval_op + 186
+  prev_chpt`eval_op:
+  ->  0x1000007ca <+186>: idivq  -0x20(%rbp)
+      0x1000007ce <+190>: movq   %rax, -0x8(%rbp)
+      0x1000007d2 <+194>: jmp    0x1000007df               ; <+207>
+      0x1000007d7 <+199>: movq   $0x0, -0x8(%rbp)
+
+  EXC_ARITHMETIC is signaled when the CPU detects an invalid calculation.
+  Some causes include division by 0 (our case), integer overflow, etc.
+  Unix signal SIGFPE causes a core dump and a program exit. The name "FPE", standing for floating-point exception, is a misnomer as the signal covers integer-arithmetic errors as well.
+
+› How do you give an enum a name?
+  Syntax to define an enumerated data type:
+  enum type_name{ value1, value2,...,valueN };
+
+  If passed, the type_name is the name of the enumerated data type or tag.
+
+› What are union data types and how do they work?
+  Unions are declared, created, and used the same as structs except
+  unions only allocate enough space to store the largest field listed,
+  and all fields are stored at the same space (the beginning of the union).
+
+  This means that all fields in a union share the same space,
+  which can be used for any listed field but not more than one of them.
+
+  In order to know which union fi9eld is actually stored, unions are often nested inside of structs,
+  with an enumerated type indicating what is actually stored there.
+  For Example:
+
+  typedef struct Flight {
+    enum { PASSENGER, CARGO } type;
+    union {
+      int npassengers;
+      double tonnages;  // Units are not necessarily tons.
+    } cargo;
+  } Flight;
+
+  Flight flights[ 1000 ];
+
+› What are the advantages over using a union instead of struct?
+  Unions allocate only enough bite size to store the largest field listed
+  and all fields are stored in the same space -- the beginning of the union.
+  This saves space, opposed to using a struct which allocates space for each field listed.

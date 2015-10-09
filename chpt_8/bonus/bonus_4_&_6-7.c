@@ -54,26 +54,28 @@ enum { ERR_DIV_ZERO, ERR_INVALID_OP, ERR_INVALID_NUM };
 /* Create enumeration of possibal val types */
 enum { VAL_NUM, VAL_ERR };
 
-/* Declare new val struct */
+/* Declare new val struct*/
 typedef struct {
   int type;
-  long num;
-  int err;
+  union {
+    long num;
+    int err;
+  };
 } val;
 
 /* Create a new number type val */
 val val_num(long x) {
   val v;
-  v.type = VAL_NUM;
   v.num = x;
+  v.type = VAL_NUM;
   return v;
 }
 
 /* Create a new error type val */
 val val_err(int x) {
   val v;
-  v.type = VAL_ERR;
   v.err = x;
+  v.type = VAL_ERR;
   return v;
 }
 
@@ -120,6 +122,7 @@ val eval_op(val x, char* op, val y) {
   if (strcmp(op, "/") == 0) {
     return y.num == 0 ? val_err(ERR_DIV_ZERO) : val_num(x.num / y.num);
   }
+  // › Extend parsing and evaluation to support the remainder operator %.
   if (strcmp(op, "%") == 0) { return val_num(x.num % y.num); }
   if (strcmp(op, "^") == 0) {
     long result = 1;
@@ -170,8 +173,9 @@ int main(int argc, char** argv) {
 
   /* Define them with the following Language */
   mpca_lang(MPCA_LANG_DEFAULT,
+    // (-?([0-9]+)?)(\.?[0-9]+)
     "                                                    \
-      number   : /-?[0-9]+(\\.[0-9]+)?/;                 \
+      number   : /-?[0-9](\\.[0-9]+)?/;                 \
       operator : '+' | '-' | '*' | '/' | '%' | '^' |     \
                 \"min\" | \"max\" ;                      \
       expr     : <number> | '(' <operator> <expr>+ ')';  \
