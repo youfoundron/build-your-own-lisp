@@ -140,6 +140,15 @@ val eval(mpc_ast_t* t) {
   if (strstr(t->tag, "number")) {
     /* Check if there is some error in conversion */
     errno  = 0;
+    /* see if a float is given by checking if contents have a decimal point */
+  if (strchr(t->contents, '.') != NULL) {
+      float x_float = strtof(t->contents, NULL);
+      printf("%f - float\n", x_float);
+    /* otherwise treat it as a long */
+    } else {
+      long x_long = strtol(t->contents, NULL, 10);
+      printf("%li - long\n", x_long);
+    }
     long x = strtol(t->contents, NULL, 10);
     return errno != ERANGE ? val_num(x) : val_err(ERR_INVALID_NUM);
   }
