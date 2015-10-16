@@ -52,22 +52,32 @@ void add_history(char* unused) {}
 enum { ERR_DIV_ZERO, ERR_INVALID_OP, ERR_INVALID_NUM };
 
 /* Create enumeration of possibal val types */
-enum { VAL_NUM, VAL_ERR };
+enum { VAL_NUM_LONG, VAL_NUM_DOUBLE, VAL_ERR };
 
 /* Declare new val struct*/
 typedef struct {
   int type;
   union {
-    long num;
+    long num_long;
+    double num_double;
     int err;
   };
 } val;
 
 /* Create a new number type val */
-val val_num(long x) {
+/* Handle longs */
+val val_num_long(long x) {
   val v;
-  v.num = x;
-  v.type = VAL_NUM;
+  v.num_long = x;
+  v.type = VAL_NUM_LONG;
+  return v;
+}
+
+/* Handle doubles */
+val val_num_double(double x) {
+  val v;
+  v.num_double = x;
+  v.type = VAL_NUM_DOUBLE;
   return v;
 }
 
@@ -84,19 +94,20 @@ void val_print(val v) {
   switch (v.type) {
     /* In the case the type is a number print it */
     /* Then 'break' out of the switch statement. */
-    case VAL_NUM: printf("%li", v.num); break;
+    case VAL_NUM_LONG: printf("%li", v.num_long); break;
+    case VAL_NUM_DOUBLE: printf("%lf", v.num_double); break;
 
     /* In the case the type is an error */
     case VAL_ERR:
       /* Check what type of error it is and print it */
       if (v.err == ERR_DIV_ZERO) {
-        printf("error: Division by zero");
+        printf("Error: Division by zero");
       }
       if (v.err == ERR_INVALID_OP) {
         printf("Error: Invalid operator");
       }
       if (v.err == ERR_INVALID_NUM) {
-        printf("Errror: Invalid number");
+        printf("Error: Invalid number");
       }
     break;
   }
@@ -116,21 +127,44 @@ val eval_op(val x, char* op, val y) {
   if (y.type == VAL_ERR) { return y; }
 
   /* Otherwise do math on the number values */
-  if (strcmp(op, "+") == 0) { return val_num(x.num + y.num); }
-  if (strcmp(op, "-") == 0) { return val_num(x.num - y.num); }
-  if (strcmp(op, "*") == 0) { return val_num(x.num * y.num); }
-  if (strcmp(op, "/") == 0) {
-    return y.num == 0 ? val_err(ERR_DIV_ZERO) : val_num(x.num / y.num);
+  /* If either value is a double, use val_num_double */
+  if (x.type == VAL_NUM_DOUBLE || y.type == VAL_NUM_DOUBLE) {
+    /* type cast long to double for operation */
+    if (x.type == VAL_NUM_LONG) { double x_num_double = x.num_long; x.num_double = x_num_double; }
+    if (y.type == VAL_NUM_LONG) { double y_num_double = y.num_long; y.num_double = y_num_double; }
+    /* operate on values */
+    if (strcmp(op, "+") == 0) { return val_num_double(x.num_double + y.num_double); }
+    if (strcmp(op, "-") == 0) { return val_num_double(x.num_double - y.num_double); }
+    if (strcmp(op, "*") == 0) { return val_num_double(x.num_double * y.num_double); }
+    if (strcmp(op, "/") == 0) {
+      return y.num_double == 0 ? val_err(ERR_DIV_ZERO) : val_num_double(x.num_double / y.num_double);
+    }
+    if (strcmp(op, "^") == 0) {
+      long result = 1;
+      for (int i = 0; i < y.num_double; i++) { result = result * x.num_double; }
+      return val_num_double(result);
+    }
+    if (strcmp(op, "min") == 0) { return (x.num_double <= y.num_double) ? val_num_double(x.num_double) : val_num_double(y.num_double); }
+    if (strcmp(op, "max") == 0) { return (x.num_double >= y.num_double) ? val_num_double(x.num_double) : val_num_double(y.num_double); }
+
+  /* If either value is a long, use val_num_long */
+  } else {
+    if (strcmp(op, "+") == 0) { return val_num_long(x.num_long + y.num_long); }
+    if (strcmp(op, "-") == 0) { return val_num_long(x.num_long - y.num_long); }
+    if (strcmp(op, "*") == 0) { return val_num_long(x.num_long * y.num_long); }
+    if (strcmp(op, "/") == 0) {
+      return y.num_long == 0 ? val_err(ERR_DIV_ZERO) : val_num_long(x.num_long / y.num_long);
+    }
+    // › Extend parsing and evaluation to support the remainder operator %.
+    if (strcmp(op, "%") == 0) { return val_num_long(x.num_long % y.num_long); }
+    if (strcmp(op, "^") == 0) {
+      long result = 1;
+      for (int i = 0; i < y.num_long; i++) { result = result * x.num_long; }
+      return val_num_long(result);
+    }
+    if (strcmp(op, "min") == 0) { return (x.num_long <= y.num_long) ? val_num_long(x.num_long) : val_num_long(y.num_long); }
+    if (strcmp(op, "max") == 0) { return (x.num_long >= y.num_long) ? val_num_long(x.num_long) : val_num_long(y.num_long); }
   }
-  // › Extend parsing and evaluation to support the remainder operator %.
-  if (strcmp(op, "%") == 0) { return val_num(x.num % y.num); }
-  if (strcmp(op, "^") == 0) {
-    long result = 1;
-    for (int i = 0; i < y.num; i++) { result = result * x.num; }
-    return val_num(result);
-  }
-  if (strcmp(op, "min") == 0) { return (x.num <= y.num) ? val_num(x.num) : val_num(y.num); }
-  if (strcmp(op, "max") == 0) { return (x.num >= y.num) ? val_num(x.num) : val_num(y.num); }
   return val_err(ERR_INVALID_OP);
 }
 
@@ -138,18 +172,16 @@ val eval_op(val x, char* op, val y) {
 val eval(mpc_ast_t* t) {
   /* If tagged as number return it directly. */
   if (strstr(t->tag, "number")) {
-    /* Check if there is some error in conversion */
+/* Check if there is some error in conversion */
     errno  = 0;
-    /* see if a float is given by checking if contents have a decimal point */
+    /* see if a double is given by checking if contents have a decimal point */
   if (strchr(t->contents, '.') != NULL) {
-      float x_float = strtof(t->contents, NULL);
-      // printf("%f - float\n", x_float);
-      return errno != ERANGE ? val_num(x_float) : val_err(ERR_INVALID_NUM);
+      double x_double = strtof(t->contents, NULL);
+      return errno != ERANGE ? val_num_double(x_double) : val_err(ERR_INVALID_NUM);
     /* otherwise treat it as a long */
     } else {
       long x_long = strtol(t->contents, NULL, 10);
-      // printf("%li - long\n", x_long);
-      return errno != ERANGE ? val_num(x_long) : val_err(ERR_INVALID_NUM);
+      return errno != ERANGE ? val_num_long(x_long) : val_err(ERR_INVALID_NUM);
     }
   }
 
@@ -161,7 +193,7 @@ val eval(mpc_ast_t* t) {
 
   /* If '-' operator receives one argument, negate it */
   if (strcmp(op, "-") == 0 && t->children_num < 5) {
-    x = eval_op(val_num(0), op, x);
+    x = eval_op(val_num_long(0), op, x);
   }
 
   /* Iterate the remaining children and combining. */
@@ -182,9 +214,8 @@ int main(int argc, char** argv) {
 
   /* Define them with the following Language */
   mpca_lang(MPCA_LANG_DEFAULT,
-    // (-?([0-9]+)?)(\.?[0-9]+)
     "                                                    \
-      number   : /-?[0-9](\\.[0-9]+)?/;                 \
+      number   : /-?[0-9]+(\\.[0-9]+)?/;                 \
       operator : '+' | '-' | '*' | '/' | '%' | '^' |     \
                 \"min\" | \"max\" ;                      \
       expr     : <number> | '(' <operator> <expr>+ ')';  \
