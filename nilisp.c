@@ -31,8 +31,8 @@ char* readline(char* prompt) {
 /* Fake add history function */
 void add_history(char* unused) {}
 
-   #ifdef _WIN64 //define something for Windows (64-bit only)
-   #endif
+  #ifdef _WIN64 //define something for Windows (64-bit only)
+  #endif
 #elif __APPLE__ //define something for Mac OS
 #include <editline/readline.h>
   #include "TargetConditionals.h"
@@ -48,6 +48,161 @@ void add_history(char* unused) {}
 #elif __posix // POSIX
 #endif
 
+/* Create enumeration of possible error types */
+enum { ERR_DIV_ZERO, ERR_INVALID_OP, ERR_INVALID_NUM };
+
+/* Create enumeration of possibal val types */
+enum { VAL_NUM_LONG, VAL_NUM_DOUBLE, VAL_ERR };
+
+/* Declare new val struct*/
+typedef struct {
+  int type;
+  union {
+    long num_long;
+    double num_double;
+    int err;
+  };
+} val;
+
+/* Create a new number type val */
+/* Handle longs */
+val val_num_long(long x) {
+  val v;
+  v.num_long = x;
+  v.type = VAL_NUM_LONG;
+  return v;
+}
+
+/* Handle doubles */
+val val_num_double(double x) {
+  val v;
+  v.num_double = x;
+  v.type = VAL_NUM_DOUBLE;
+  return v;
+}
+
+/* Create a new error type val */
+val val_err(int x) {
+  val v;
+  v.err = x;
+  v.type = VAL_ERR;
+  return v;
+}
+
+/* Print a val */
+void val_print(val v) {
+  switch (v.type) {
+    /* In the case the type is a number print it */
+    /* Then 'break' out of the switch statement. */
+    case VAL_NUM_LONG: printf("%li", v.num_long); break;
+    case VAL_NUM_DOUBLE: printf("%lf", v.num_double); break;
+
+    /* In the case the type is an error */
+    case VAL_ERR:
+      /* Check what type of error it is and print it */
+      if (v.err == ERR_DIV_ZERO) {
+        printf("Error: Division by zero");
+      }
+      if (v.err == ERR_INVALID_OP) {
+        printf("Error: Invalid operator");
+      }
+      if (v.err == ERR_INVALID_NUM) {
+        printf("Error: Invalid number");
+      }
+    break;
+  }
+}
+
+/* Print a val followed by a new line */
+void val_println(val v) {
+  val_print(v);
+  putchar('\n');
+}
+
+/* User operator string to see which operation to perform */
+val eval_op(val x, char* op, val y) {
+
+  /* If either value is an error return it */
+  if (x.type == VAL_ERR) { return x; }
+  if (y.type == VAL_ERR) { return y; }
+
+  /* Otherwise do math on the number values */
+  /* If either value is a double, use val_num_double */
+  if (x.type == VAL_NUM_DOUBLE || y.type == VAL_NUM_DOUBLE) {
+    /* type cast long to double for operation */
+    if (x.type == VAL_NUM_LONG) { double x_num_double = x.num_long; x.num_double = x_num_double; }
+    if (y.type == VAL_NUM_LONG) { double y_num_double = y.num_long; y.num_double = y_num_double; }
+    /* operate on values */
+    if (strcmp(op, "+") == 0) { return val_num_double(x.num_double + y.num_double); }
+    if (strcmp(op, "-") == 0) { return val_num_double(x.num_double - y.num_double); }
+    if (strcmp(op, "*") == 0) { return val_num_double(x.num_double * y.num_double); }
+    if (strcmp(op, "/") == 0) {
+      return y.num_double == 0 ? val_err(ERR_DIV_ZERO) : val_num_double(x.num_double / y.num_double);
+    }
+    if (strcmp(op, "^") == 0) {
+      long result = 1;
+      for (int i = 0; i < y.num_double; i++) { result = result * x.num_double; }
+      return val_num_double(result);
+    }
+    if (strcmp(op, "min") == 0) { return (x.num_double <= y.num_double) ? val_num_double(x.num_double) : val_num_double(y.num_double); }
+    if (strcmp(op, "max") == 0) { return (x.num_double >= y.num_double) ? val_num_double(x.num_double) : val_num_double(y.num_double); }
+
+  /* If either value is a long, use val_num_long */
+  } else {
+    if (strcmp(op, "+") == 0) { return val_num_long(x.num_long + y.num_long); }
+    if (strcmp(op, "-") == 0) { return val_num_long(x.num_long - y.num_long); }
+    if (strcmp(op, "*") == 0) { return val_num_long(x.num_long * y.num_long); }
+    if (strcmp(op, "/") == 0) {
+      return y.num_long == 0 ? val_err(ERR_DIV_ZERO) : val_num_long(x.num_long / y.num_long);
+    }
+    if (strcmp(op, "%") == 0) { return val_num_long(x.num_long % y.num_long); }
+    if (strcmp(op, "^") == 0) {
+      long result = 1;
+      for (int i = 0; i < y.num_long; i++) { result = result * x.num_long; }
+      return val_num_long(result);
+    }
+    if (strcmp(op, "min") == 0) { return (x.num_long <= y.num_long) ? val_num_long(x.num_long) : val_num_long(y.num_long); }
+    if (strcmp(op, "max") == 0) { return (x.num_long >= y.num_long) ? val_num_long(x.num_long) : val_num_long(y.num_long); }
+  }
+  return val_err(ERR_INVALID_OP);
+}
+
+/* evaluate function */
+val eval(mpc_ast_t* t) {
+  /* If tagged as number return it directly. */
+  if (strstr(t->tag, "number")) {
+/* Check if there is some error in conversion */
+    errno  = 0;
+    /* see if a double is given by checking if contents have a decimal point */
+  if (strchr(t->contents, '.') != NULL) {
+      double x_double = strtof(t->contents, NULL);
+      return errno != ERANGE ? val_num_double(x_double) : val_err(ERR_INVALID_NUM);
+    /* otherwise treat it as a long */
+    } else {
+      long x_long = strtol(t->contents, NULL, 10);
+      return errno != ERANGE ? val_num_long(x_long) : val_err(ERR_INVALID_NUM);
+    }
+  }
+
+  /* The operator is always second child. */
+  char* op = t->children[1]->contents;
+
+  /* We store the third child in 'x' */
+  val x = eval(t->children[2]);
+
+  /* If '-' operator receives one argument, negate it */
+  if (strcmp(op, "-") == 0 && t->children_num < 5) {
+    x = eval_op(val_num_long(0), op, x);
+  }
+
+  /* Iterate the remaining children and combining. */
+  int i = 3;
+  while (strstr(t->children[i]->tag, "expr"))  {
+    x = eval_op(x, op, eval(t->children[i]));
+    i++;
+  }
+  return x;
+}
 
 int main(int argc, char** argv) {
   /* Create Some Parsers */
@@ -60,7 +215,8 @@ int main(int argc, char** argv) {
   mpca_lang(MPCA_LANG_DEFAULT,
     "                                                    \
       number   : /-?[0-9]+(\\.[0-9]+)?/;                 \
-      operator : '+' | '-' | '*' | '/' | '%' ;           \
+      operator : '+' | '-' | '*' | '/' | '%' | '^' |     \
+                \"min\" | \"max\" ;                      \
       expr     : <number> | '(' <operator> <expr>+ ')';  \
       nilisp   : /^/ <operator> <expr>+ /$/ |            \
                  /^\\(/ <operator> <expr>+ /\\)$/;       \
@@ -79,8 +235,9 @@ int main(int argc, char** argv) {
     /* Atempt to Parse the user Input */
     mpc_result_t r;
     if (mpc_parse("<stdin>", input, Nilisp, &r)) {
-      /* On Success Print the AST */
-      mpc_ast_print(r.output);
+      /* On Success Evaluate the AST and Print the response */
+      val result = eval(r.output);
+      val_println(result);
       mpc_ast_delete(r.output);
     } else {
       /* Otherwise Print the Error */
